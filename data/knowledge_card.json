@@ -1,0 +1,217 @@
+{
+  "schema_version": "1.0",
+  "incident_id": "INC-001",
+  "correlation_id": "INC-001",
+  "timestamp": "2026-09-03T14:57:01.262618Z",
+  "producer": "investigation",
+  "consumer": "rca",
+  "status": "SUCCESS",
+  "payload": {
+    "incident": {
+      "incident_id": "INC-001",
+      "service_name": "order-api",
+      "service_version": "v1.8",
+      "severity": "HIGH",
+      "detected_at": "2026-09-03T14:57:01.179060Z",
+      "symptom": "API latency increased by approximately 370%",
+      "baseline_latency_ms": 105.0,
+      "current_latency_ms": 494.0,
+      "increase_percent": 370.48,
+      "environment": "production"
+    },
+    "findings": [
+      {
+        "finding_id": "LOG-F-001",
+        "agent": "logs",
+        "category": "LOGS",
+        "finding": "Database-related errors increased during the incident.",
+        "value": "4 error logs found",
+        "expected_value": "No significant database errors",
+        "evidence": [
+          {
+            "source": "application_logs",
+            "reference": "logs.json",
+            "details": "Database query execution time exceeded expected threshold"
+          },
+          {
+            "source": "application_logs",
+            "reference": "logs.json",
+            "details": "Database query timeout while fetching order details"
+          },
+          {
+            "source": "application_logs",
+            "reference": "logs.json",
+            "details": "Database connection request timed out"
+          },
+          {
+            "source": "application_logs",
+            "reference": "logs.json",
+            "details": "Order request failed because database operation exceeded timeout"
+          },
+          {
+            "source": "application_logs",
+            "reference": "logs.json",
+            "details": "Slow database query detected for order lookup"
+          }
+        ],
+        "confidence": 0.88,
+        "severity": "HIGH"
+      },
+      {
+        "finding_id": "LOG-F-002",
+        "agent": "logs",
+        "category": "DATABASE",
+        "finding": "Database timeout and slow-query messages are present.",
+        "value": "5 database-related log entries",
+        "expected_value": "No database timeout errors",
+        "evidence": [
+          {
+            "source": "application_logs",
+            "reference": "logs.json",
+            "details": "Database query execution time exceeded expected threshold"
+          },
+          {
+            "source": "application_logs",
+            "reference": "logs.json",
+            "details": "Database query timeout while fetching order details"
+          },
+          {
+            "source": "application_logs",
+            "reference": "logs.json",
+            "details": "Database connection request timed out"
+          },
+          {
+            "source": "application_logs",
+            "reference": "logs.json",
+            "details": "Order request failed because database operation exceeded timeout"
+          },
+          {
+            "source": "application_logs",
+            "reference": "logs.json",
+            "details": "Slow database query detected for order lookup"
+          }
+        ],
+        "confidence": 0.91,
+        "severity": "HIGH"
+      },
+      {
+        "finding_id": "METRIC-F-001",
+        "agent": "metrics",
+        "category": "METRICS",
+        "finding": "API latency increased significantly.",
+        "value": "494 ms",
+        "expected_value": "Approximately 105.0 ms",
+        "evidence": [
+          {
+            "source": "service_metrics",
+            "reference": "metrics.json",
+            "details": "Latest latency is 494 ms compared with baseline 105.0 ms."
+          }
+        ],
+        "confidence": 0.96,
+        "severity": "HIGH"
+      },
+      {
+        "finding_id": "METRIC-F-002",
+        "agent": "metrics",
+        "category": "INFRASTRUCTURE",
+        "finding": "CPU utilization is elevated.",
+        "value": "82%",
+        "expected_value": "< 80%",
+        "evidence": [
+          {
+            "source": "service_metrics",
+            "reference": "metrics.json",
+            "details": "CPU utilization reached 82%."
+          }
+        ],
+        "confidence": 0.89,
+        "severity": "HIGH"
+      },
+      {
+        "finding_id": "METRIC-F-003",
+        "agent": "metrics",
+        "category": "APPLICATION",
+        "finding": "API error rate increased.",
+        "value": "8.97%",
+        "expected_value": "< 1%",
+        "evidence": [
+          {
+            "source": "service_metrics",
+            "reference": "metrics.json",
+            "details": "Error rate reached 8.97%."
+          }
+        ],
+        "confidence": 0.94,
+        "severity": "HIGH"
+      },
+      {
+        "finding_id": "DB-F-001",
+        "agent": "database",
+        "category": "DATABASE",
+        "finding": "Database query execution time increased significantly.",
+        "value": "4567 ms",
+        "expected_value": "< 500 ms",
+        "evidence": [
+          {
+            "source": "database_query_data",
+            "reference": "Q-103",
+            "details": "Query execution time: 4303 ms; status: SLOW"
+          },
+          {
+            "source": "database_query_data",
+            "reference": "Q-104",
+            "details": "Query execution time: 4458 ms; status: TIMEOUT_RISK"
+          },
+          {
+            "source": "database_query_data",
+            "reference": "Q-105",
+            "details": "Query execution time: 4567 ms; status: TIMEOUT_RISK"
+          }
+        ],
+        "confidence": 0.91,
+        "severity": "HIGH"
+      },
+      {
+        "finding_id": "DB-F-002",
+        "agent": "database",
+        "category": "DATABASE",
+        "finding": "Multiple database queries are at risk of timing out.",
+        "value": "2 queries",
+        "expected_value": "No timeout-risk queries",
+        "evidence": [
+          {
+            "source": "database_query_data",
+            "reference": "Q-104",
+            "details": "Query status is TIMEOUT_RISK with execution time 4458 ms."
+          },
+          {
+            "source": "database_query_data",
+            "reference": "Q-105",
+            "details": "Query status is TIMEOUT_RISK with execution time 4567 ms."
+          }
+        ],
+        "confidence": 0.94,
+        "severity": "HIGH"
+      },
+      {
+        "finding_id": "NET-F-001",
+        "agent": "network",
+        "category": "NETWORK",
+        "finding": "Network conditions are within normal range.",
+        "value": "22 ms latency, 0% packet loss",
+        "expected_value": "< 50 ms latency and 0% packet loss",
+        "evidence": [
+          {
+            "source": "network_metrics",
+            "reference": "network.json",
+            "details": "Network status: HEALTHY; latency: 22 ms; packet loss: 0%."
+          }
+        ],
+        "confidence": 0.94,
+        "severity": "LOW"
+      }
+    ],
+    "overall_confidence": 0.9375
+  }
+}

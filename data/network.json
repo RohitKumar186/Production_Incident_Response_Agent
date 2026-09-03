@@ -1,0 +1,42 @@
+[
+  {
+    "timestamp": "2026-09-03T14:52:01.752746Z",
+    "service": "order-api",
+    "source": "order-api",
+    "destination": "database",
+    "latency_ms": 21,
+    "packet_loss_percent": 0,
+    "status": "HEALTHY",
+    "incident_id": null
+  },
+  {
+    "timestamp": "2026-09-03T14:54:01.752746Z",
+    "service": "order-api",
+    "source": "order-api",
+    "destination": "database",
+    "latency_ms": 22,
+    "packet_loss_percent": 0,
+    "status": "HEALTHY",
+    "incident_id": null
+  },
+  {
+    "timestamp": "2026-09-03T14:57:01.752746Z",
+    "service": "order-api",
+    "source": "order-api",
+    "destination": "database",
+    "latency_ms": 20,
+    "packet_loss_percent": 0,
+    "status": "HEALTHY",
+    "incident_id": "INC-001"
+  },
+  {
+    "timestamp": "2026-09-03T14:58:01.752746Z",
+    "service": "order-api",
+    "source": "order-api",
+    "destination": "database",
+    "latency_ms": 22,
+    "packet_loss_percent": 0,
+    "status": "HEALTHY",
+    "incident_id": "INC-001"
+  }
+]

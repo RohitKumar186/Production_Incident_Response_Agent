@@ -1,0 +1,47 @@
+[
+  {
+    "timestamp": "2026-09-03T14:52:01.752746Z",
+    "query_id": "Q-101",
+    "query": "SELECT * FROM orders WHERE customer_id = 101",
+    "execution_time_ms": 285,
+    "expected_execution_time_ms": 500,
+    "status": "SUCCESS",
+    "incident_id": null
+  },
+  {
+    "timestamp": "2026-09-03T14:53:01.752746Z",
+    "query_id": "Q-102",
+    "query": "SELECT * FROM orders WHERE customer_id = 102",
+    "execution_time_ms": 270,
+    "expected_execution_time_ms": 500,
+    "status": "SUCCESS",
+    "incident_id": null
+  },
+  {
+    "timestamp": "2026-09-03T14:56:01.752746Z",
+    "query_id": "Q-103",
+    "query": "SELECT * FROM orders WHERE customer_id = 103",
+    "execution_time_ms": 4303,
+    "expected_execution_time_ms": 500,
+    "status": "SLOW",
+    "incident_id": "INC-001"
+  },
+  {
+    "timestamp": "2026-09-03T14:57:01.752746Z",
+    "query_id": "Q-104",
+    "query": "SELECT * FROM orders WHERE customer_id = 104",
+    "execution_time_ms": 4458,
+    "expected_execution_time_ms": 500,
+    "status": "TIMEOUT_RISK",
+    "incident_id": "INC-001"
+  },
+  {
+    "timestamp": "2026-09-03T14:58:01.752746Z",
+    "query_id": "Q-105",
+    "query": "SELECT * FROM orders WHERE customer_id = 105",
+    "execution_time_ms": 4567,
+    "expected_execution_time_ms": 500,
+    "status": "TIMEOUT_RISK",
+    "incident_id": "INC-001"
+  }
+]
