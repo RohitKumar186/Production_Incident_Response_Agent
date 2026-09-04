@@ -1,0 +1,10 @@
+dependencies {
+    api project(':billing:payment:payment-events')
+    api project(':common:primitives')
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+}

@@ -1,0 +1,5 @@
+rootProject.name = 'portal'
+
+include 'web'
+include 'spring-boot-starter'
+include 'application'

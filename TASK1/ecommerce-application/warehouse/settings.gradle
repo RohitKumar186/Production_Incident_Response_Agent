@@ -1,0 +1,9 @@
+rootProject.name = 'warehouse'
+
+include 'events'
+include 'domain'
+include 'jdbc'
+include 'listeners'
+include 'rest'
+include 'spring-boot-starter'
+include 'application'

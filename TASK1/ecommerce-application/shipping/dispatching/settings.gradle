@@ -1,0 +1,8 @@
+rootProject.name = 'dispatching'
+
+include 'events'
+include 'domain'
+include 'jdbc'
+include 'listeners'
+include 'spring-boot-starter'
+include 'application'

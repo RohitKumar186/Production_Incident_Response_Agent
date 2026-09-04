@@ -1,0 +1,25 @@
+dependencies {
+    implementation project(':shipping:dispatching:dispatching-spring-boot-starter')
+
+    implementation project(':common:application-integration-spring-boot-starter')
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.rest-assured:rest-assured'
+}
+
+apply plugin: 'org.springframework.boot'
+
+javadocJar {
+    enabled = false
+}
+
+sourcesJar {
+    enabled = false
+}
+
+bootBuildImage {
+    imageName = 'ttulka/ecommerce-dispatching-service'
+}

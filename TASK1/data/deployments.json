@@ -1,0 +1,16 @@
+[
+  {
+    "deployment_id": "DEP-001",
+    "service": "order-api",
+    "version": "v1.7",
+    "deployed_at": "2026-09-02T16:28:38.602791Z",
+    "status": "SUCCESS"
+  },
+  {
+    "deployment_id": "DEP-002",
+    "service": "order-api",
+    "version": "v1.8",
+    "deployed_at": "2026-09-04T16:28:38.602791Z",
+    "status": "SUCCESS"
+  }
+]

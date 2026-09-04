@@ -1,0 +1,16 @@
+dependencies {
+    api project(':billing:payment:payment-domain')
+    api project(':sales:order:order-events')
+
+    implementation 'org.springframework:spring-context'
+    implementation 'org.springframework:spring-tx'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+javadoc {
+    enabled = false
+}

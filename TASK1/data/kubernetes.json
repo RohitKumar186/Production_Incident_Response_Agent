@@ -1,0 +1,13 @@
+{
+  "cluster": "simulated-production-cluster",
+  "namespace": "production",
+  "deployment": {
+    "name": "order-api",
+    "service": "order-api",
+    "version": "v1.8",
+    "replicas": 3,
+    "available_replicas": 3,
+    "status": "Running",
+    "cpu_percent": 82
+  }
+}

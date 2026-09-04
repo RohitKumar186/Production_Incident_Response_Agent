@@ -1,0 +1,34 @@
+[
+  {
+    "timestamp": "2026-09-04T16:58:38.602791Z",
+    "service": "order-api",
+    "incident_id": null,
+    "latency_ms": 105,
+    "cpu_percent": 41,
+    "error_rate_percent": 0.11
+  },
+  {
+    "timestamp": "2026-09-04T16:59:38.602791Z",
+    "service": "order-api",
+    "incident_id": null,
+    "latency_ms": 107,
+    "cpu_percent": 39,
+    "error_rate_percent": 0.11
+  },
+  {
+    "timestamp": "2026-09-04T17:02:38.602791Z",
+    "service": "order-api",
+    "incident_id": "INC-001",
+    "latency_ms": 466,
+    "cpu_percent": 78,
+    "error_rate_percent": 8.65
+  },
+  {
+    "timestamp": "2026-09-04T17:03:38.602791Z",
+    "service": "order-api",
+    "incident_id": "INC-001",
+    "latency_ms": 494,
+    "cpu_percent": 82,
+    "error_rate_percent": 8.97
+  }
+]

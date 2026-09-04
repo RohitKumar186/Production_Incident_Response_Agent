@@ -1,0 +1,11 @@
+dependencies {
+    api project(':sales:order:order-events')
+
+    api project(':common:primitives:')
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+}
