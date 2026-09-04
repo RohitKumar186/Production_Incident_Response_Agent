@@ -1,11 +1,22 @@
-from models.schemas import AgentResult, Evidence, Finding, Incident, InvestigationStatus
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
+import json
+
+from models.schemas import (
+    AgentResult,
+    Evidence,
+    Finding,
+    Incident,
+    InvestigationStatus,
+)
 from tools.database_tool import query_database
 
 
-def investigate_database(incident: Incident) -> AgentResult:
-    """
-    Investigate database query performance for the given incident.
-    """
+ECOMMERCE_DB_URL = "http://localhost:8080/incident/database"
+
+
+def _investigate_simulation_database(incident: Incident) -> AgentResult:
+    """Investigate database data from the existing simulation."""
 
     records = query_database(
         incident_id=incident.incident_id,
@@ -94,6 +105,113 @@ def investigate_database(incident: Incident) -> AgentResult:
                 confidence=0.94,
                 severity="HIGH",
             )
+            )
+
+    return AgentResult(
+        agent="database",
+        status=InvestigationStatus.SUCCESS,
+        findings=findings,
+        confidence=max(
+            (finding.confidence for finding in findings),
+            default=0.0,
+        ),
+    )
+
+
+def _investigate_ecommerce_database(incident: Incident) -> AgentResult:
+    """Investigate the real e-commerce application's database."""
+
+    try:
+        with urlopen(ECOMMERCE_DB_URL, timeout=5) as response:
+            data = json.loads(response.read().decode("utf-8"))
+
+    except HTTPError as error:
+        return AgentResult(
+            agent="database",
+            status=InvestigationStatus.FAILED,
+            error={
+                "code": "ECOMMERCE_DB_HTTP_ERROR",
+                "message": f"E-commerce DB endpoint returned HTTP {error.code}.",
+                "retryable": True,
+            },
+        )
+
+    except URLError as error:
+        return AgentResult(
+            agent="database",
+            status=InvestigationStatus.FAILED,
+            error={
+                "code": "ECOMMERCE_DB_UNAVAILABLE",
+                "message": f"Could not connect to e-commerce DB endpoint: {error}",
+                "retryable": True,
+            },
+        )
+
+    except Exception as error:
+        return AgentResult(
+            agent="database",
+            status=InvestigationStatus.FAILED,
+            error={
+                "code": "ECOMMERCE_DB_ERROR",
+                "message": str(error),
+                "retryable": True,
+            },
+        )
+
+    findings = []
+
+    status = data.get("status")
+    query_latency = data.get("query_latency_ms")
+
+    if status == "HEALTHY":
+        findings.append(
+            Finding(
+                finding_id="DB-F-REAL-001",
+                agent="database",
+                category="DATABASE",
+                finding="Real e-commerce database is healthy.",
+                value=(
+                    f"H2 database healthy; query latency "
+                    f"{query_latency} ms"
+                ),
+                expected_value="Healthy database connectivity",
+                evidence=[
+                    Evidence(
+                        source="ecommerce_database",
+                        reference="/incident/database",
+                        details=(
+                            f"Database status: {status}; "
+                            f"orders: {data.get('orders_count', 0)}; "
+                            f"order items: {data.get('order_items_count', 0)}; "
+                            f"diagnostic query latency: "
+                            f"{query_latency} ms."
+                        ),
+                    )
+                ],
+                confidence=0.98,
+                severity="LOW",
+            )
+        )
+
+    else:
+        findings.append(
+            Finding(
+                finding_id="DB-F-REAL-002",
+                agent="database",
+                category="DATABASE",
+                finding="Real e-commerce database health check failed.",
+                value=str(status),
+                expected_value="HEALTHY",
+                evidence=[
+                    Evidence(
+                        source="ecommerce_database",
+                        reference="/incident/database",
+                        details=json.dumps(data),
+                    )
+                ],
+                confidence=0.98,
+                severity="HIGH",
+            )
         )
 
     return AgentResult(
@@ -105,3 +223,17 @@ def investigate_database(incident: Incident) -> AgentResult:
             default=0.0,
         ),
     )
+
+
+def investigate_database(incident: Incident) -> AgentResult:
+    """
+    Investigate database using the appropriate data source.
+
+    Simulation incidents use simulated database data.
+    Real e-commerce incidents use the live database diagnostics endpoint.
+    """
+
+    if incident.baseline_latency_ms == 320.0:
+        return _investigate_ecommerce_database(incident)
+
+    return _investigate_simulation_database(incident)

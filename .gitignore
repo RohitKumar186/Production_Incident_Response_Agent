@@ -4,3 +4,6 @@ __pycache__/
 .venv/
 *.log
 .env
+# E-commerce runtime logs
+ecommerce-application/**/*.log
+ecommerce-application/*.log

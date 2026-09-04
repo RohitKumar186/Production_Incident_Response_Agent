@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "incident_id": "INC-001",
   "correlation_id": "INC-001",
-  "timestamp": "2026-09-03T14:57:01.262618Z",
+  "timestamp": "2026-09-04T18:22:02.117670Z",
   "producer": "investigation",
   "consumer": "rca",
   "status": "SUCCESS",
@@ -12,206 +12,100 @@
       "service_name": "order-api",
       "service_version": "v1.8",
       "severity": "HIGH",
-      "detected_at": "2026-09-03T14:57:01.179060Z",
-      "symptom": "API latency increased by approximately 370%",
-      "baseline_latency_ms": 105.0,
-      "current_latency_ms": 494.0,
-      "increase_percent": 370.48,
+      "detected_at": "2026-09-04T18:21:59.766630Z",
+      "symptom": "Order API latency increased significantly.",
+      "baseline_latency_ms": 320.0,
+      "current_latency_ms": 2230.97,
+      "increase_percent": 597.18,
       "environment": "production"
     },
     "findings": [
       {
-        "finding_id": "LOG-F-001",
+        "finding_id": "LOG-F-REAL-001",
         "agent": "logs",
-        "category": "LOGS",
-        "finding": "Database-related errors increased during the incident.",
-        "value": "4 error logs found",
-        "expected_value": "No significant database errors",
+        "category": "APPLICATION",
+        "finding": "Real e-commerce Order API request activity detected.",
+        "value": "2 request log entries",
+        "expected_value": "Normal request processing",
         "evidence": [
           {
-            "source": "application_logs",
-            "reference": "logs.json",
-            "details": "Database query execution time exceeded expected threshold"
-          },
-          {
-            "source": "application_logs",
-            "reference": "logs.json",
-            "details": "Database query timeout while fetching order details"
-          },
-          {
-            "source": "application_logs",
-            "reference": "logs.json",
-            "details": "Database connection request timed out"
-          },
-          {
-            "source": "application_logs",
-            "reference": "logs.json",
-            "details": "Order request failed because database operation exceeded timeout"
-          },
-          {
-            "source": "application_logs",
-            "reference": "logs.json",
-            "details": "Slow database query detected for order lookup"
+            "source": "ecommerce_application",
+            "reference": "ecommerce-application.log",
+            "details": "2026-09-04T23:51:57.671+05:30 DEBUG 18728 --- [http-nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : POST \"/order\", parameters={}"
           }
         ],
-        "confidence": 0.88,
+        "confidence": 0.95,
         "severity": "HIGH"
       },
       {
-        "finding_id": "LOG-F-002",
+        "finding_id": "LOG-F-REAL-002",
         "agent": "logs",
-        "category": "DATABASE",
-        "finding": "Database timeout and slow-query messages are present.",
-        "value": "5 database-related log entries",
-        "expected_value": "No database timeout errors",
+        "category": "APPLICATION",
+        "finding": "Order API request reached the OrderController.",
+        "value": "OrderController#place",
+        "expected_value": "Normal request processing",
         "evidence": [
           {
-            "source": "application_logs",
-            "reference": "logs.json",
-            "details": "Database query execution time exceeded expected threshold"
-          },
-          {
-            "source": "application_logs",
-            "reference": "logs.json",
-            "details": "Database query timeout while fetching order details"
-          },
-          {
-            "source": "application_logs",
-            "reference": "logs.json",
-            "details": "Database connection request timed out"
-          },
-          {
-            "source": "application_logs",
-            "reference": "logs.json",
-            "details": "Order request failed because database operation exceeded timeout"
-          },
-          {
-            "source": "application_logs",
-            "reference": "logs.json",
-            "details": "Slow database query detected for order lookup"
+            "source": "ecommerce_application",
+            "reference": "ecommerce-application.log",
+            "details": "2026-09-04T23:51:57.671+05:30 DEBUG 18728 --- [http-nio-8080-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.ttulka.ecommerce.sales.order.rest.OrderController#place(PlaceRequest)"
           }
         ],
-        "confidence": 0.91,
-        "severity": "HIGH"
+        "confidence": 0.94,
+        "severity": "MEDIUM"
       },
       {
-        "finding_id": "METRIC-F-001",
+        "finding_id": "METRIC-F-REAL-001",
         "agent": "metrics",
         "category": "METRICS",
-        "finding": "API latency increased significantly.",
-        "value": "494 ms",
-        "expected_value": "Approximately 105.0 ms",
+        "finding": "Real e-commerce API latency increased significantly.",
+        "value": "2051.7 ms",
+        "expected_value": "Approximately 320.0 ms",
         "evidence": [
           {
-            "source": "service_metrics",
-            "reference": "metrics.json",
-            "details": "Latest latency is 494 ms compared with baseline 105.0 ms."
+            "source": "ecommerce_api",
+            "reference": "order-api",
+            "details": "Real Order API latency was 2051.7 ms compared with the healthy baseline of 320.0 ms, an increase of 541.16%."
           }
         ],
-        "confidence": 0.96,
+        "confidence": 0.98,
         "severity": "HIGH"
       },
       {
-        "finding_id": "METRIC-F-002",
-        "agent": "metrics",
-        "category": "INFRASTRUCTURE",
-        "finding": "CPU utilization is elevated.",
-        "value": "82%",
-        "expected_value": "< 80%",
-        "evidence": [
-          {
-            "source": "service_metrics",
-            "reference": "metrics.json",
-            "details": "CPU utilization reached 82%."
-          }
-        ],
-        "confidence": 0.89,
-        "severity": "HIGH"
-      },
-      {
-        "finding_id": "METRIC-F-003",
-        "agent": "metrics",
-        "category": "APPLICATION",
-        "finding": "API error rate increased.",
-        "value": "8.97%",
-        "expected_value": "< 1%",
-        "evidence": [
-          {
-            "source": "service_metrics",
-            "reference": "metrics.json",
-            "details": "Error rate reached 8.97%."
-          }
-        ],
-        "confidence": 0.94,
-        "severity": "HIGH"
-      },
-      {
-        "finding_id": "DB-F-001",
+        "finding_id": "DB-F-REAL-001",
         "agent": "database",
         "category": "DATABASE",
-        "finding": "Database query execution time increased significantly.",
-        "value": "4567 ms",
-        "expected_value": "< 500 ms",
+        "finding": "Real e-commerce database is healthy.",
+        "value": "H2 database healthy; query latency 7.43 ms",
+        "expected_value": "Healthy database connectivity",
         "evidence": [
           {
-            "source": "database_query_data",
-            "reference": "Q-103",
-            "details": "Query execution time: 4303 ms; status: SLOW"
-          },
-          {
-            "source": "database_query_data",
-            "reference": "Q-104",
-            "details": "Query execution time: 4458 ms; status: TIMEOUT_RISK"
-          },
-          {
-            "source": "database_query_data",
-            "reference": "Q-105",
-            "details": "Query execution time: 4567 ms; status: TIMEOUT_RISK"
+            "source": "ecommerce_database",
+            "reference": "/incident/database",
+            "details": "Database status: HEALTHY; orders: 3; order items: 3; diagnostic query latency: 7.43 ms."
           }
         ],
-        "confidence": 0.91,
-        "severity": "HIGH"
+        "confidence": 0.98,
+        "severity": "LOW"
       },
       {
-        "finding_id": "DB-F-002",
-        "agent": "database",
-        "category": "DATABASE",
-        "finding": "Multiple database queries are at risk of timing out.",
-        "value": "2 queries",
-        "expected_value": "No timeout-risk queries",
-        "evidence": [
-          {
-            "source": "database_query_data",
-            "reference": "Q-104",
-            "details": "Query status is TIMEOUT_RISK with execution time 4458 ms."
-          },
-          {
-            "source": "database_query_data",
-            "reference": "Q-105",
-            "details": "Query status is TIMEOUT_RISK with execution time 4567 ms."
-          }
-        ],
-        "confidence": 0.94,
-        "severity": "HIGH"
-      },
-      {
-        "finding_id": "NET-F-001",
+        "finding_id": "NET-F-REAL-001",
         "agent": "network",
         "category": "NETWORK",
-        "finding": "Network conditions are within normal range.",
-        "value": "22 ms latency, 0% packet loss",
-        "expected_value": "< 50 ms latency and 0% packet loss",
+        "finding": "Real e-commerce application is reachable.",
+        "value": "31.85 ms latency, 0.0% packet loss",
+        "expected_value": "Reachable with 0% packet loss",
         "evidence": [
           {
-            "source": "network_metrics",
-            "reference": "network.json",
-            "details": "Network status: HEALTHY; latency: 22 ms; packet loss: 0%."
+            "source": "ecommerce_application",
+            "reference": "/incident/database",
+            "details": "Connectivity probe returned HTTP 200 with 31.85 ms response latency and 0.0% packet loss."
           }
         ],
-        "confidence": 0.94,
+        "confidence": 0.97,
         "severity": "LOW"
       }
     ],
-    "overall_confidence": 0.9375
+    "overall_confidence": 0.96
   }
 }

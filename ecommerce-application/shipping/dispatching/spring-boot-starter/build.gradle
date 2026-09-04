@@ -1,0 +1,10 @@
+dependencies {
+    api project(':shipping:dispatching:dispatching-jdbc')
+    api project(':shipping:dispatching:dispatching-listeners')
+
+    api 'org.springframework.boot:spring-boot-starter-jdbc'
+}
+
+javadoc {
+    enabled = false
+}

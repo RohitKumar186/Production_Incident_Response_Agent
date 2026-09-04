@@ -1,0 +1,6 @@
+dependencies {
+    api project(':common:events')
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+}

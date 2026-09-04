@@ -1,0 +1,10 @@
+rootProject.name = 'delivery'
+
+include 'events'
+include 'domain'
+include 'jdbc'
+include 'listeners'
+include 'rest'
+include 'webcomp'
+include 'spring-boot-starter'
+include 'application'

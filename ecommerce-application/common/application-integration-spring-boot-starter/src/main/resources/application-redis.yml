@@ -1,0 +1,13 @@
+ecommerce:
+  broker:
+    host: localhost
+    port: 6379
+    password:
+    timeout: 1s
+
+spring:
+  redis:
+    host: ${ecommerce.broker.host}
+    port: ${ecommerce.broker.port}
+    password: ${ecommerce.broker.password}
+    timeout: ${ecommerce.broker.timeout}

@@ -1,0 +1,11 @@
+dependencies {
+    api project(':sales:order:order-jdbc')
+    api project(':sales:order:order-rest')
+    api project(':sales:order:order-webcomp')
+
+    api 'org.springframework.boot:spring-boot-starter-jdbc'
+}
+
+javadoc {
+    enabled = false
+}

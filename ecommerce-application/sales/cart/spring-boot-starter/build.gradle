@@ -1,0 +1,11 @@
+dependencies {
+    api project(':sales:cart:cart-jdbc')
+    api project(':sales:cart:cart-rest')
+    api project(':sales:cart:cart-webcomp')
+
+    api 'org.springframework.boot:spring-boot-starter-jdbc'
+}
+
+javadoc {
+    enabled = false
+}

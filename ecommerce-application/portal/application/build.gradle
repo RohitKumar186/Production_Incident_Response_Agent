@@ -1,0 +1,17 @@
+dependencies {
+    implementation project(':portal:portal-spring-boot-starter')
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.rest-assured:rest-assured'
+}
+
+apply plugin: 'org.springframework.boot'
+
+bootBuildImage {
+    imageName = 'ttulka/ecommerce-portal-service'
+}

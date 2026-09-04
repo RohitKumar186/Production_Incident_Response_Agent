@@ -1,0 +1,54 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version "${springBootVersion}"
+    id 'io.spring.dependency-management' version "${dependencyManagementVersion}"
+}
+
+group = 'com.ttulka.ecommerce'
+version = '2.0-SNAPSHOT'
+
+description = 'Monolithic application assembling all service in a single process.'
+
+sourceCompatibility = 17
+targetCompatibility = 17
+
+dependencies {
+    implementation project(':sales:catalog:catalog-spring-boot-starter')
+    implementation project(':sales:cart:cart-spring-boot-starter')
+    implementation project(':sales:order:order-spring-boot-starter')
+    implementation project(':warehouse:warehouse-spring-boot-starter')
+    implementation project(':billing:payment:payment-spring-boot-starter')
+    implementation project(':shipping:delivery:delivery-spring-boot-starter')
+    implementation project(':shipping:dispatching:dispatching-spring-boot-starter')
+    implementation project(':portal:portal-spring-boot-starter')
+    implementation project(':common:application-integration-spring-boot-starter')
+
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.rest-assured:rest-assured'
+    testImplementation 'com.tngtech.archunit:archunit:1.2.1'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+test {
+    useJUnitPlatform()
+    include '**/**Test.class'
+}
+
+bootBuildImage {
+    enabled = false
+}

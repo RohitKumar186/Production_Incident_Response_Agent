@@ -1,0 +1,13 @@
+dependencies {
+    api project(':shipping:delivery:delivery-jdbc')
+    api project(':shipping:delivery:delivery-listeners')
+    api project(':shipping:delivery:delivery-rest')
+    api project(':shipping:delivery:delivery-webcomp')
+
+    api 'org.springframework.boot:spring-boot-starter-jdbc'
+    api 'org.springframework.boot:spring-boot-starter-web'
+}
+
+javadoc {
+    enabled = false
+}

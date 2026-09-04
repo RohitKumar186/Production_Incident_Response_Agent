@@ -1,0 +1,12 @@
+dependencies {
+    api project(':billing:payment:payment-jdbc')
+    api project(':billing:payment:payment-listeners')
+    api project(':billing:payment:payment-rest')
+
+    api 'org.springframework.boot:spring-boot-starter-jdbc'
+    api 'org.springframework.boot:spring-boot-starter-web'
+}
+
+javadoc {
+    enabled = false
+}

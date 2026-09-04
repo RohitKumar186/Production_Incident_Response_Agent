@@ -1,0 +1,11 @@
+dependencies {
+    api project(':sales:catalog:catalog-jdbc')
+    api project(':sales:catalog:catalog-rest')
+    api project(':sales:catalog:catalog-webcomp')
+
+    api 'org.springframework.boot:spring-boot-starter-jdbc'
+}
+
+javadoc {
+    enabled = false
+}

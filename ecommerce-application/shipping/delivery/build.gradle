@@ -1,0 +1,62 @@
+plugins {
+    id 'org.springframework.boot' version "${springBootVersion}" apply false
+    id 'io.spring.dependency-management' version "${dependencyManagementVersion}"
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'io.spring.dependency-management'
+
+    group = 'com.ttulka.ecommerce.shipping.delivery'
+    version = '2.0-SNAPSHOT'
+
+    sourceCompatibility = 17
+    targetCompatibility = 17
+
+    dependencyManagement {
+        imports {
+            mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+        }
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    javadoc {
+        if (JavaVersion.current().isJava9Compatible()) {
+            options.addBooleanOption('html5', true)
+        }
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    if (project.name != 'application') {
+        apply plugin: 'maven-publish'
+
+        publishing {
+            publications {
+                mavenJava(MavenPublication) {
+                    artifactId = rootProject.name + '-' + project.name
+                    from components.java
+                    versionMapping {
+                        usage('java-api') {
+                            fromResolutionOf('runtimeClasspath')
+                        }
+                        usage('java-runtime') {
+                            fromResolutionResult()
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

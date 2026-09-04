@@ -1,0 +1,20 @@
+dependencies {
+    api project(':shipping:dispatching:dispatching-domain')
+
+    api project(':shipping:delivery:delivery-events')
+    api project(':sales:order:order-events')
+    api project(':billing:payment:payment-events')
+    api project(':warehouse:warehouse-events')
+
+    implementation 'org.springframework:spring-context'
+    implementation 'org.springframework:spring-tx'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+javadoc {
+    enabled = false
+}

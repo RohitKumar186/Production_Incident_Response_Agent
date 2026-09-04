@@ -1,10 +1,3 @@
-"""
-Investigation orchestrator.
-
-Coordinates the specialist investigation agents and combines
-their findings into the shared Knowledge Card used by Member 2.
-"""
-
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,16 +14,13 @@ from models.schemas import (
     KnowledgeCard,
 )
 from simulation.incident_generator import generate_simulation_data
+from tools.ecommerce_monitor import measure_order_api, create_incident
 
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
 def run_investigation(incident: Incident) -> KnowledgeCard:
-    """
-    Run all investigation agents and create a Knowledge Card.
-    """
-
     agent_results: list[AgentResult] = [
         investigate_logs(incident),
         investigate_metrics(incident),
@@ -62,10 +52,11 @@ def run_investigation(incident: Incident) -> KnowledgeCard:
     else:
         overall_status = InvestigationStatus.SUCCESS
 
-    if successful_results:
-        overall_confidence = sum(
-            result.confidence for result in successful_results
-        ) / len(successful_results)
+    if findings:
+        overall_confidence = round(
+            sum(finding.confidence for finding in findings) / len(findings),
+            2,
+        )
     else:
         overall_confidence = 0.0
 
@@ -88,10 +79,6 @@ def run_investigation(incident: Incident) -> KnowledgeCard:
 
 
 def save_knowledge_card(knowledge_card: KnowledgeCard) -> Path:
-    """
-    Save the Knowledge Card as JSON for Member 2.
-    """
-
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     output_file = DATA_DIR / "knowledge_card.json"
@@ -106,46 +93,72 @@ def save_knowledge_card(knowledge_card: KnowledgeCard) -> Path:
     return output_file
 
 
+def run_simulation_mode() -> Incident:
+    """Generate an incident using the existing simulation environment."""
+    return generate_simulation_data()
+
+
+def run_ecommerce_mode() -> Incident | None:
+    """Detect an incident from the real e-commerce application."""
+
+    monitor_result = measure_order_api("INCIDENT-MONITOR-001")
+
+    print("\nE-COMMERCE MONITOR RESULT")
+    print("=" * 50)
+    print(f"Status            : {monitor_result.get('status_code')}")
+    print(f"Baseline          : {monitor_result.get('baseline_latency_ms')} ms")
+    print(f"Current Latency   : {monitor_result.get('latency_ms')} ms")
+    print(f"Increase          : {monitor_result.get('increase_percent')}%")
+    print(f"Incident Detected : {monitor_result.get('incident_detected')}")
+    print(f"Successful        : {monitor_result.get('success')}")
+
+    if monitor_result.get("error"):
+        print(f"Error             : {monitor_result['error']}")
+
+    incident = create_incident(monitor_result)
+
+    return incident
+
+
 def main() -> None:
-    """
-    Run the complete investigation pipeline.
+    print("\nPRODUCTION INCIDENT RESPONSE")
+    print("=" * 50)
+    print("Monitoring real e-commerce application...")
 
-    1. Generate a fresh simulated incident
-    2. Generate all production data
-    3. Run investigation agents
-    4. Create the Knowledge Card
-    5. Save the Knowledge Card
-    """
+    incident = run_ecommerce_mode()
 
-    incident = generate_simulation_data()
+    if incident is None:
+        print("\n✅ No incident detected.")
+        print("The e-commerce application appears healthy.")
+        return
+
+    print("\n🚨 INCIDENT DETECTED")
+    print("=" * 50)
+    print(f"Incident ID       : {incident.incident_id}")
+    print(f"Service           : {incident.service_name}")
+    print(f"Severity          : {incident.severity}")
+    print(f"Baseline Latency  : {incident.baseline_latency_ms} ms")
+    print(f"Current Latency   : {incident.current_latency_ms} ms")
+    print(f"Increase          : {incident.increase_percent}%")
+
+    print("\nStarting investigation agents...")
 
     knowledge_card = run_investigation(incident)
 
     output_file = save_knowledge_card(knowledge_card)
 
-    print("\n" + "=" * 60)
-    print("INVESTIGATION COMPLETE")
-    print("=" * 60)
-
-    print(f"Incident ID       : {knowledge_card.incident_id}")
+    print("\nINVESTIGATION COMPLETE")
+    print("=" * 50)
     print(f"Status            : {knowledge_card.status}")
     print(
-        f"Overall Confidence: "
-        f"{knowledge_card.payload.overall_confidence:.2f}"
-    )
-    print(
-        f"Total Findings    : "
+        f"Findings          : "
         f"{len(knowledge_card.payload.findings)}"
     )
-
-    print("\nKnowledge Card saved to:")
-    print(f"  {output_file}")
-
-    print("\n" + "=" * 60)
-    print("INVESTIGATION KNOWLEDGE CARD")
-    print("=" * 60)
-
-    print(knowledge_card.model_dump_json(indent=2))
+    print(
+        f"Overall Confidence: "
+        f"{knowledge_card.payload.overall_confidence}"
+    )
+    print(f"Knowledge Card    : {output_file}")
 
 
 if __name__ == "__main__":

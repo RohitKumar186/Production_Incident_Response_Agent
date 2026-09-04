@@ -1,0 +1,16 @@
+dependencies {
+    implementation project(':sales:cart:cart-domain')
+
+    implementation 'org.springframework:spring-web'
+
+    compileOnly 'jakarta.servlet:jakarta.servlet-api'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-web'
+}
+
+javadoc {
+    enabled = false
+}
