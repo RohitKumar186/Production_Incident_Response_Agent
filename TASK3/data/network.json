@@ -1,0 +1,8 @@
+{
+  "service": "order-api",
+  "latency_ms": 22,
+  "expected_latency_ms": 50,
+  "packet_loss_percent": 0,
+  "expected_packet_loss_percent": 1,
+  "status": "NORMAL"
+}

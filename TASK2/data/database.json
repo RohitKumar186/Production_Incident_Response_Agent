@@ -1,0 +1,24 @@
+{
+  "database": "orders-db",
+  "status": "HEALTHY",
+  "queries": [
+    {
+      "query_id": "query-101",
+      "query": "SELECT * FROM users WHERE id = 10",
+      "execution_time_ms": 120,
+      "expected_time_ms": 500
+    },
+    {
+      "query_id": "query-102",
+      "query": "SELECT * FROM orders WHERE customer_id = 10",
+      "execution_time_ms": 4200,
+      "expected_time_ms": 500
+    },
+    {
+      "query_id": "query-103",
+      "query": "SELECT * FROM products WHERE id = 20",
+      "execution_time_ms": 180,
+      "expected_time_ms": 500
+    }
+  ]
+}

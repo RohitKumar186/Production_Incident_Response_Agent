@@ -1,0 +1,13 @@
+{
+  "service": "order-api",
+  "latency": {
+    "baseline_ms": 100,
+    "current_ms": 500
+  },
+  "error_rate": {
+    "baseline_percent": 1,
+    "current_percent": 8
+  },
+  "cpu_usage_percent": 62,
+  "memory_usage_percent": 71
+}
