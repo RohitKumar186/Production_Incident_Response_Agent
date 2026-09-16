@@ -1,0 +1,68 @@
+[
+  {
+    "source_id": "INC-017",
+    "source_type": "previous_incident",
+    "title": "Previous Order API Database Incident",
+    "keywords": [
+      "database",
+      "query",
+      "timeout",
+      "slow",
+      "latency",
+      "orders"
+    ],
+    "relevant_information": "A similar Order API incident was caused by database query performance degradation. The affected query had unusually high execution time and caused database timeout errors. The issue was resolved by optimizing the affected query."
+  },
+  {
+    "source_id": "RUNBOOK-DB-001",
+    "source_type": "runbook",
+    "title": "Database Query Performance Runbook",
+    "keywords": [
+      "database",
+      "query",
+      "performance",
+      "execution",
+      "timeout"
+    ],
+    "relevant_information": "When database query execution time increases significantly, inspect slow queries, query plans, indexes, locks and database resource utilization. Optimize the affected query before applying production changes."
+  },
+  {
+    "source_id": "INC-021",
+    "source_type": "previous_incident",
+    "title": "Network Latency Incident",
+    "keywords": [
+      "network",
+      "latency",
+      "packet",
+      "loss"
+    ],
+    "relevant_information": "A previous network incident was caused by increased network latency and packet loss. Investigation confirmed degraded network conditions between application components."
+  },
+  {
+    "source_id": "RUNBOOK-APP-001",
+    "source_type": "runbook",
+    "title": "Application Error Rate Runbook",
+    "keywords": [
+      "application",
+      "error",
+      "http",
+      "500",
+      "exception",
+      "latency"
+    ],
+    "relevant_information": "For elevated application errors and latency, inspect HTTP 5xx responses, application exceptions, recent deployments and service resource utilization."
+  },
+  {
+    "source_id": "RUNBOOK-INFRA-001",
+    "source_type": "runbook",
+    "title": "Infrastructure Resource Pressure Runbook",
+    "keywords": [
+      "infrastructure",
+      "cpu",
+      "resource",
+      "memory",
+      "utilization"
+    ],
+    "relevant_information": "For infrastructure-related incidents, inspect CPU, memory, resource saturation and service health. High CPU utilization can contribute to increased application latency."
+  }
+]

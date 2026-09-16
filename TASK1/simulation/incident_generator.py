@@ -3,6 +3,12 @@ Incident generator.
 
 Creates a simulated production incident and automatically
 generates the production data associated with that incident.
+
+Supported scenarios:
+    - database
+    - network
+    - application
+    - infrastructure
 """
 
 import json
@@ -11,7 +17,10 @@ from pathlib import Path
 from random import Random
 
 from models.schemas import Incident
-from simulation.environment import generate_environment
+from simulation.environment import (
+    SUPPORTED_SCENARIOS,
+    generate_environment,
+)
 
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -28,14 +37,27 @@ def format_timestamp(timestamp: datetime) -> str:
 def create_incident(
     seed: int | None = None,
     detected_at: datetime | None = None,
+    scenario: str = "database",
 ) -> Incident:
     """
     Create a simulated production incident.
 
-    Environment values are generated automatically.
+    Environment values are generated automatically
+    according to the selected failure scenario.
     """
 
-    environment = generate_environment(seed)
+    scenario = scenario.lower()
+
+    if scenario not in SUPPORTED_SCENARIOS:
+        raise ValueError(
+            f"Unsupported scenario: {scenario}. "
+            f"Supported scenarios: {sorted(SUPPORTED_SCENARIOS)}"
+        )
+
+    environment = generate_environment(
+        seed=seed,
+        scenario=scenario,
+    )
 
     normal = environment["normal"]
     incident = environment["incident"]
@@ -48,6 +70,21 @@ def create_incident(
         / normal["latency_ms"]
     ) * 100
 
+    scenario_symptoms = {
+        "database": (
+            "Database query performance degradation"
+        ),
+        "network": (
+            "Network latency and packet loss detected"
+        ),
+        "application": (
+            "Application error rate and latency increased"
+        ),
+        "infrastructure": (
+            "Infrastructure resource utilization is high"
+        ),
+    }
+
     return Incident(
         incident_id="INC-001",
         service_name=incident["service"],
@@ -55,6 +92,7 @@ def create_incident(
         severity="HIGH",
         detected_at=detected_at,
         symptom=(
+            f"{scenario_symptoms[scenario]}. "
             f"API latency increased by approximately "
             f"{increase_percent:.0f}%"
         ),
@@ -74,6 +112,7 @@ def generate_logs(
 
     normal = environment["normal"]
     incident_state = environment["incident"]
+    scenario = environment["scenario"]
     incident_time = incident.detected_at
 
     logs = [
@@ -109,15 +148,40 @@ def generate_logs(
         },
     ]
 
-    incident_messages = [
-        "Database query execution time exceeded expected threshold",
-        "Database query timeout while fetching order details",
-        "Database connection request timed out",
-        "Order request failed because database operation exceeded timeout",
-        "Slow database query detected for order lookup",
-    ]
+    scenario_messages = {
+        "database": [
+            "Database query execution time exceeded expected threshold",
+            "Database query timeout while fetching order details",
+            "Database connection request timed out",
+            "Order request failed because database operation exceeded timeout",
+            "Slow database query detected for order lookup",
+        ],
+        "network": [
+            "Network latency exceeded expected threshold",
+            "Packet loss detected between order-api and database",
+            "Network connection experiencing high latency",
+            "Order request delayed due to network communication",
+            "Network connectivity degradation detected",
+        ],
+        "application": [
+            "Application returned HTTP 500 error",
+            "Unhandled application exception detected",
+            "Order request failed inside application layer",
+            "Application processing latency exceeded threshold",
+            "Repeated application errors detected",
+        ],
+        "infrastructure": [
+            "Infrastructure CPU utilization exceeded threshold",
+            "System resources are under heavy load",
+            "Order API instance is experiencing resource pressure",
+            "Infrastructure resource utilization is abnormal",
+            "Service performance degraded due to high resource usage",
+        ],
+    }
 
-    for index, message in enumerate(incident_messages):
+    messages = scenario_messages[scenario]
+
+    for index, message in enumerate(messages):
         logs.append(
             {
                 "timestamp": format_timestamp(
@@ -126,10 +190,7 @@ def generate_logs(
                 "service": incident.service_name,
                 "level": "WARN" if index == 0 else "ERROR",
                 "message": message,
-                "latency_ms": (
-                    incident_state["database_query_latency_ms"]
-                    + rng.randint(-150, 150)
-                ),
+                "latency_ms": incident_state["latency_ms"],
                 "incident_id": incident.incident_id,
             }
         )
@@ -209,8 +270,52 @@ def generate_database_data(
 
     normal = environment["normal"]
     incident_state = environment["incident"]
+    scenario = environment["scenario"]
     incident_time = incident.detected_at
 
+    # Healthy database for non-database incidents.
+    if scenario != "database":
+        return [
+            {
+                "timestamp": format_timestamp(
+                    incident_time - timedelta(minutes=5)
+                ),
+                "query_id": "Q-101",
+                "query": "SELECT * FROM orders WHERE customer_id = 101",
+                "execution_time_ms": normal["database_query_latency_ms"],
+                "expected_execution_time_ms": 500,
+                "status": "SUCCESS",
+                "incident_id": None,
+            },
+            {
+                "timestamp": format_timestamp(
+                    incident_time - timedelta(minutes=1)
+                ),
+                "query_id": "Q-102",
+                "query": "SELECT * FROM orders WHERE customer_id = 102",
+                "execution_time_ms": (
+                    normal["database_query_latency_ms"]
+                    + rng.randint(-20, 20)
+                ),
+                "expected_execution_time_ms": 500,
+                "status": "SUCCESS",
+                "incident_id": incident.incident_id,
+            },
+            {
+                "timestamp": format_timestamp(incident_time),
+                "query_id": "Q-103",
+                "query": "SELECT * FROM orders WHERE customer_id = 103",
+                "execution_time_ms": (
+                    normal["database_query_latency_ms"]
+                    + rng.randint(-20, 20)
+                ),
+                "expected_execution_time_ms": 500,
+                "status": "SUCCESS",
+                "incident_id": incident.incident_id,
+            },
+        ]
+
+    # Database failure scenario.
     return [
         {
             "timestamp": format_timestamp(
@@ -255,7 +360,9 @@ def generate_database_data(
             "timestamp": format_timestamp(incident_time),
             "query_id": "Q-104",
             "query": "SELECT * FROM orders WHERE customer_id = 104",
-            "execution_time_ms": incident_state["database_query_latency_ms"],
+            "execution_time_ms": incident_state[
+                "database_query_latency_ms"
+            ],
             "expected_execution_time_ms": 500,
             "status": "TIMEOUT_RISK",
             "incident_id": incident.incident_id,
@@ -286,8 +393,49 @@ def generate_network_data(
 
     normal = environment["normal"]
     incident_state = environment["incident"]
+    scenario = environment["scenario"]
     incident_time = incident.detected_at
 
+    # Healthy network for non-network incidents.
+    if scenario != "network":
+        return [
+            {
+                "timestamp": format_timestamp(
+                    incident_time - timedelta(minutes=5)
+                ),
+                "service": incident.service_name,
+                "source": incident.service_name,
+                "destination": "database",
+                "latency_ms": normal["network_latency_ms"],
+                "packet_loss_percent": 0,
+                "status": "HEALTHY",
+                "incident_id": None,
+            },
+            {
+                "timestamp": format_timestamp(
+                    incident_time - timedelta(minutes=3)
+                ),
+                "service": incident.service_name,
+                "source": incident.service_name,
+                "destination": "database",
+                "latency_ms": normal["network_latency_ms"] + 1,
+                "packet_loss_percent": 0,
+                "status": "HEALTHY",
+                "incident_id": None,
+            },
+            {
+                "timestamp": format_timestamp(incident_time),
+                "service": incident.service_name,
+                "source": incident.service_name,
+                "destination": "database",
+                "latency_ms": incident_state["network_latency_ms"],
+                "packet_loss_percent": 0,
+                "status": "HEALTHY",
+                "incident_id": incident.incident_id,
+            },
+        ]
+
+    # Network failure scenario.
     return [
         {
             "timestamp": format_timestamp(
@@ -319,8 +467,10 @@ def generate_network_data(
             "source": incident.service_name,
             "destination": "database",
             "latency_ms": incident_state["network_latency_ms"],
-            "packet_loss_percent": 0,
-            "status": "HEALTHY",
+            "packet_loss_percent": incident_state[
+                "packet_loss_percent"
+            ],
+            "status": "DEGRADED",
             "incident_id": incident.incident_id,
         },
         {
@@ -330,12 +480,11 @@ def generate_network_data(
             "service": incident.service_name,
             "source": incident.service_name,
             "destination": "database",
-            "latency_ms": (
-                incident_state["network_latency_ms"]
-                + rng.randint(0, 2)
-            ),
-            "packet_loss_percent": 0,
-            "status": "HEALTHY",
+            "latency_ms": incident_state["network_latency_ms"],
+            "packet_loss_percent": incident_state[
+                "packet_loss_percent"
+            ],
+            "status": "DEGRADED",
             "incident_id": incident.incident_id,
         },
     ]
@@ -402,32 +551,71 @@ def save_json(filename: str, data: object) -> None:
 
 def generate_simulation_data(
     seed: int | None = None,
+    scenario: str = "database",
 ) -> Incident:
     """
     Generate the complete simulated production environment.
 
     All data sources are generated from the same incident
-    timeline and environment.
+    timeline and selected failure scenario.
     """
+
+    scenario = scenario.lower()
+
+    if scenario not in SUPPORTED_SCENARIOS:
+        raise ValueError(
+            f"Unsupported scenario: {scenario}. "
+            f"Supported scenarios: {sorted(SUPPORTED_SCENARIOS)}"
+        )
 
     rng = Random(seed)
 
     # Use one timestamp for the entire simulation.
     incident_time = datetime.now(timezone.utc)
 
-    environment = generate_environment(seed)
+    environment = generate_environment(
+        seed=seed,
+        scenario=scenario,
+    )
 
     incident = create_incident(
         seed=seed,
         detected_at=incident_time,
+        scenario=scenario,
     )
 
-    logs = generate_logs(incident, environment, rng)
-    metrics = generate_metrics(incident, environment, rng)
-    database = generate_database_data(incident, environment, rng)
-    network = generate_network_data(incident, environment, rng)
-    deployments = generate_deployment_data(incident)
-    kubernetes = generate_kubernetes_data(incident, environment)
+    logs = generate_logs(
+        incident,
+        environment,
+        rng,
+    )
+
+    metrics = generate_metrics(
+        incident,
+        environment,
+        rng,
+    )
+
+    database = generate_database_data(
+        incident,
+        environment,
+        rng,
+    )
+
+    network = generate_network_data(
+        incident,
+        environment,
+        rng,
+    )
+
+    deployments = generate_deployment_data(
+        incident,
+    )
+
+    kubernetes = generate_kubernetes_data(
+        incident,
+        environment,
+    )
 
     save_json("logs.json", logs)
     save_json("metrics.json", metrics)
@@ -436,24 +624,46 @@ def generate_simulation_data(
     save_json("deployments.json", deployments)
     save_json("kubernetes.json", kubernetes)
 
+    save_json(
+        "simulation_metadata.json",
+        {
+            "incident_id": incident.incident_id,
+            "scenario": scenario,
+            "generated_at": format_timestamp(
+                incident.detected_at
+            ),
+        },
+    )
+
     return incident
 
 
 if __name__ == "__main__":
-    incident = generate_simulation_data()
+
+    scenario = "database"
+
+    incident = generate_simulation_data(
+        seed=42,
+        scenario=scenario,
+    )
 
     print("\n" + "=" * 60)
     print("SIMULATION DATA GENERATED")
     print("=" * 60)
 
+    print(f"Scenario        : {scenario}")
     print(f"Incident ID     : {incident.incident_id}")
     print(f"Service         : {incident.service_name}")
     print(f"Version         : {incident.service_version}")
     print(f"Severity        : {incident.severity.value}")
+    print(f"Symptom         : {incident.symptom}")
     print(f"Baseline        : {incident.baseline_latency_ms} ms")
     print(f"Current Latency : {incident.current_latency_ms} ms")
     print(f"Increase        : {incident.increase_percent}%")
-    print(f"Detected At     : {format_timestamp(incident.detected_at)}")
+    print(
+        f"Detected At     : "
+        f"{format_timestamp(incident.detected_at)}"
+    )
 
     print("\nGenerated files:")
     print("  ✓ logs.json")
@@ -462,3 +672,4 @@ if __name__ == "__main__":
     print("  ✓ network.json")
     print("  ✓ deployments.json")
     print("  ✓ kubernetes.json")
+    print("  ✓ simulation_metadata.json")

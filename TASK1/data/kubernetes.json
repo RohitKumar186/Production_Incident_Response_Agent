@@ -8,6 +8,6 @@
     "replicas": 3,
     "available_replicas": 3,
     "status": "Running",
-    "cpu_percent": 82
+    "cpu_percent": 81
   }
 }

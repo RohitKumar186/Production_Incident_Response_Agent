@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-09-04T16:58:38.602791Z",
+    "timestamp": "2026-09-16T07:24:52.904102Z",
     "service": "order-api",
     "incident_id": null,
     "latency_ms": 105,
@@ -8,27 +8,27 @@
     "error_rate_percent": 0.11
   },
   {
-    "timestamp": "2026-09-04T16:59:38.602791Z",
+    "timestamp": "2026-09-16T07:25:52.904102Z",
     "service": "order-api",
     "incident_id": null,
-    "latency_ms": 107,
-    "cpu_percent": 39,
+    "latency_ms": 105,
+    "cpu_percent": 40,
     "error_rate_percent": 0.11
   },
   {
-    "timestamp": "2026-09-04T17:02:38.602791Z",
+    "timestamp": "2026-09-16T07:28:52.904102Z",
     "service": "order-api",
     "incident_id": "INC-001",
-    "latency_ms": 466,
-    "cpu_percent": 78,
-    "error_rate_percent": 8.65
+    "latency_ms": 497,
+    "cpu_percent": 79,
+    "error_rate_percent": 8.01
   },
   {
-    "timestamp": "2026-09-04T17:03:38.602791Z",
+    "timestamp": "2026-09-16T07:29:52.904102Z",
     "service": "order-api",
     "incident_id": "INC-001",
-    "latency_ms": 494,
-    "cpu_percent": 82,
-    "error_rate_percent": 8.97
+    "latency_ms": 514,
+    "cpu_percent": 81,
+    "error_rate_percent": 8.68
   }
 ]
