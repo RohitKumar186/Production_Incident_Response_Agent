@@ -33,3 +33,40 @@ def run_task4_to_task6(
     )
 
     return task6_result.to_dict()
+
+
+def run_task5_and_task6(
+    task4_output: Any,
+    decision: ApprovalDecision,
+    feedback: str | None = None,
+) -> dict:
+    """
+    Run Task 5 remediation and Task 6 verification.
+
+    Returns both outputs so the persistence layer can store
+    remediation, approval, and execution information without
+    changing the existing run_task4_to_task6() API.
+    """
+
+    rca_card = convert_task4_output(task4_output)
+
+    environment = SimulatedEnvironment()
+
+    task5_result = run_remediation(
+        rca_card=rca_card,
+        decision=decision,
+        feedback=feedback,
+        environment=environment,
+    )
+
+    task5_output = task5_result.to_dict()
+
+    task6_result = run_verification(
+        task5_output=task5_output,
+        environment=environment,
+    )
+
+    return {
+        "task5": task5_output,
+        "task6": task6_result.to_dict(),
+    }

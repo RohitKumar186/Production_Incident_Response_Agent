@@ -1,0 +1,103 @@
+.remediation-detail-grid {
+  margin-bottom: 18px;
+}
+
+.remediation-description {
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid #202a34;
+  border-radius: 7px;
+  background: #111820;
+}
+
+.remediation-description p {
+  margin: 0;
+  color: #aeb9c2;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.remediation-risk {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid #403823;
+  border-radius: 7px;
+  background: #1b1914;
+  color: #b9aa7c;
+}
+
+.remediation-risk svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.remediation-risk strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #d0c08b;
+  font-size: 11px;
+}
+
+.remediation-risk p {
+  margin: 0;
+  color: #9f926c;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.remediation-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.remediation-state svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.remediation-state strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.remediation-state p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.remediation-state-approved {
+  border: 1px solid #293d32;
+  background: #121d18;
+  color: #9cbaa8;
+}
+
+.remediation-state-approved svg {
+  color: #79a98d;
+}
+
+.remediation-state-executing {
+  border: 1px solid #403823;
+  background: #1b1914;
+  color: #b9aa7c;
+}
+
+.remediation-state-executing svg {
+  color: #c1a95f;
+}
+
+.remediation-state-completed {
+  border: 1px solid #293d32;
+  background: #121d18;
+  color: #9cbaa8;
+}
+
+.remediation-state-completed svg {
+  color: #79a98d;
+}

@@ -1,3 +1,5 @@
+import ast
+import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -8,7 +10,7 @@ class Task4Incident:
     Compatibility representation of an incident for Task 4.
 
     This adapter translates the new Task 1/2 incident model into
-    the legacy structure currently expected by Task 4.
+    the structure expected by Task 4 and Task 5.
 
     This is NOT the simulator's hidden root cause.
     """
@@ -18,6 +20,11 @@ class Task4Incident:
     symptom: dict[str, Any]
     incident_type: str
     technology_stack: list[str]
+
+    # Required by the Task 4 -> Task 5 contract.
+    severity: str
+    detected_at: str
+    environment: str
 
 
 @dataclass
@@ -71,13 +78,47 @@ class Task4Adapter:
         - No simulator root cause is copied.
         - No SimulatedFault is copied.
         - Only observed investigation evidence is transferred.
+        - Incident metadata required by downstream contracts is preserved.
     """
 
-    def convert(self, investigation_card) -> Task4InvestigationInput:
+    def convert(
+        self,
+        investigation_card,
+        source_incident=None,
+    ) -> Task4InvestigationInput:
         """
         Convert a Task 2 InvestigationCard into Task 4's
         expected input structure.
+
+        source_incident is the original Task 1 incident. It is used
+        only to preserve legitimate incident metadata required by
+        downstream Task 5 validation.
         """
+
+        severity = self._get_incident_field(
+            source_incident,
+            "severity",
+            default="UNKNOWN",
+        )
+
+        detected_at = self._get_incident_field(
+            source_incident,
+            "detected_at",
+            default=None,
+        )
+
+        if detected_at is None:
+            detected_at = self._get_incident_field(
+                source_incident,
+                "timestamp",
+                default="",
+            )
+
+        environment = self._get_incident_field(
+            source_incident,
+            "environment",
+            default="production",
+        )
 
         incident = Task4Incident(
             incident_id=investigation_card.incident_id,
@@ -96,6 +137,9 @@ class Task4Adapter:
             technology_stack=(
                 investigation_card.technology_stack
             ),
+            severity=str(severity),
+            detected_at=str(detected_at),
+            environment=str(environment),
         )
 
         findings = []
@@ -104,7 +148,6 @@ class Task4Adapter:
             investigation_card.evidence,
             start=1,
         ):
-
             source = evidence_item.get(
                 "source",
                 "unknown",
@@ -119,6 +162,34 @@ class Task4Adapter:
                 "data",
                 {},
             )
+
+            # ------------------------------------------------------
+            # Normalize evidence payload
+            # ------------------------------------------------------
+
+            if isinstance(data, str):
+
+                try:
+                    data = json.loads(data)
+
+                except json.JSONDecodeError:
+
+                    try:
+                        data = ast.literal_eval(data)
+
+                    except (ValueError, SyntaxError):
+                        pass
+
+            elif hasattr(data, "model_dump"):
+
+                data = data.model_dump()
+
+            elif hasattr(data, "__dict__") and not isinstance(
+                data,
+                (dict, list, tuple),
+            ):
+
+                data = vars(data)
 
             finding_text = self._build_finding_text(
                 source=source,
@@ -167,6 +238,40 @@ class Task4Adapter:
             incident_id=investigation_card.incident_id,
             payload=payload,
         )
+
+    # ============================================================
+    # INCIDENT METADATA
+    # ============================================================
+
+    def _get_incident_field(
+        self,
+        incident: Any,
+        field: str,
+        default: Any = None,
+    ) -> Any:
+        """
+        Safely read metadata from the original Task 1 incident.
+        """
+
+        if incident is None:
+            return default
+
+        value = getattr(
+            incident,
+            field,
+            None,
+        )
+
+        if value is not None:
+            return value
+
+        if isinstance(incident, dict):
+            return incident.get(
+                field,
+                default,
+            )
+
+        return default
 
     # ============================================================
     # FINDING TEXT
@@ -364,10 +469,8 @@ class Task4Adapter:
                 return "0"
 
             if (
-                data.get("connection_pool_used")
-                is not None
-                and data.get("connection_pool_size")
-                is not None
+                data.get("connection_pool_used") is not None
+                and data.get("connection_pool_size") is not None
             ):
                 return (
                     f"< {data['connection_pool_size']}"

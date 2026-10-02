@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from datetime import datetime, timezone
 
 from TASK4.models.schemas import RCAOutput
@@ -81,18 +82,26 @@ def run_rca(investigation_card):
     # ---------------------------------
 
     payload = {
-        "incident": incident.model_dump(),
+        # Task4Incident is a dataclass, not a Pydantic model.
+        # Therefore use asdict() instead of model_dump().
+        "incident": asdict(incident),
+
         "root_cause": root_cause.model_dump(),
+
         "supporting_evidence": [
             evidence.model_dump()
             for evidence in supporting_evidence
         ],
+
         "rag_context": [
             context.model_dump()
             for context in rag_context
         ],
+
         "recommended_action": recommended_action.model_dump(),
+
         "target_version": target_version,
+
         "rollback_plan": rollback_plan.model_dump(),
     }
 

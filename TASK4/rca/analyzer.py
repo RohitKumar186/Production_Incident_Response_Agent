@@ -266,14 +266,17 @@ def _calculate_root_cause_scores(
         elif category == "APPLICATION":
 
             keywords = [
-                "application",
-                "error",
-                "exception",
-                "http 500",
-                "http500",
-                "crash",
-                "unhandled",
-            ]
+        "application",
+        "error",
+        "exception",
+        "http 500",
+        "http500",
+        "crash",
+        "unhandled",
+        "dependency",
+        "failed requests",
+        "downstream",
+    ]
 
             matches = sum(
                 keyword in text
