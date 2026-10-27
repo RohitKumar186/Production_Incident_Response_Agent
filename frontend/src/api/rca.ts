@@ -1,64 +1,64 @@
-import apiClient from './client'
 
-interface BackendResponse<T> {
-  status: string
-  data: T
-}
+import apiClient from './client'
 
 export interface RCAResponse {
   incidentId?: string
   incident_id?: string
-  status: string
+  status?: string
 
   payload?: {
     incident?: Record<string, unknown>
-
     root_cause?: {
       description?: string
       category?: string
       confidence?: number
-    }
-
+    } | string
     supporting_evidence?: unknown[]
-
     rag_context?: unknown[]
-
     recommended_action?: {
       action?: string
       action_type?: string
       target?: string
       risk?: string
       requires_human_approval?: boolean
-    }
-
+    } | string
     target_version?: string
-
     rollback_plan?: {
       description?: string
     }
   }
 
-  // Compatibility fields
+  root_cause?: string | Record<string, unknown>
   rootCause?: string
   confidence?: number
+  contributing_factors?: unknown[]
   contributingFactors?: string[]
+  recommended_action?: string
   evidence?: unknown[]
   generatedAt?: string
 
-  // Backend fields
   schema_version?: string
   correlation_id?: string
   timestamp?: string
   producer?: string
   consumer?: string
+
+  [key: string]: unknown
 }
 
 export async function getRCA(
   incidentId: string,
 ): Promise<RCAResponse> {
-  const response = await apiClient.get<BackendResponse<RCAResponse>>(
-    `/api/incidents/${incidentId}/rca`,
+  const response = await apiClient.get<RCAResponse[] | RCAResponse>(
+    `/api/rca/${encodeURIComponent(incidentId)}`,
   )
 
-  return response.data.data
+  const body = response.data
+  const result = Array.isArray(body) ? body[0] : body
+
+  if (!result) {
+    throw new Error(`No RCA result found for ${incidentId}`)
+  }
+
+  return result
 }

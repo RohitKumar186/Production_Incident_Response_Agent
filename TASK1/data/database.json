@@ -1,0 +1,36 @@
+{
+  "database": "orders-db",
+  "status": "DEGRADED",
+  "queries": [
+    {
+      "query_id": "Q-101",
+      "query": "SELECT * FROM orders WHERE customer_id = 101",
+      "execution_time_ms": 285,
+      "expected_time_ms": 500
+    },
+    {
+      "query_id": "Q-102",
+      "query": "SELECT * FROM orders WHERE customer_id = 102",
+      "execution_time_ms": 299,
+      "expected_time_ms": 500
+    },
+    {
+      "query_id": "Q-103",
+      "query": "SELECT * FROM orders WHERE customer_id = 103",
+      "execution_time_ms": 3810,
+      "expected_time_ms": 500
+    },
+    {
+      "query_id": "Q-104",
+      "query": "SELECT * FROM orders WHERE customer_id = 104",
+      "execution_time_ms": 3932,
+      "expected_time_ms": 500
+    },
+    {
+      "query_id": "Q-105",
+      "query": "SELECT * FROM orders WHERE customer_id = 105",
+      "execution_time_ms": 4090,
+      "expected_time_ms": 500
+    }
+  ]
+}

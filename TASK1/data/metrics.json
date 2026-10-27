@@ -1,0 +1,14 @@
+[
+  {
+    "service": "order-api",
+    "latency_ms": 105,
+    "cpu_percent": 45,
+    "error_rate_percent": 1.2
+  },
+  {
+    "service": "order-api",
+    "latency_ms": 514,
+    "cpu_percent": 81,
+    "error_rate_percent": 8.68
+  }
+]

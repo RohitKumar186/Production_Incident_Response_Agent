@@ -81,10 +81,20 @@ def run_rca(investigation_card):
     # Output
     # ---------------------------------
 
+    # Task 4 may receive the incident as either:
+    # 1. a dataclass
+    # 2. a Pydantic model
+    #
+    # Support both without changing the RCA logic.
+    if hasattr(incident, "__dataclass_fields__"):
+        incident_data = asdict(incident)
+    elif hasattr(incident, "model_dump"):
+        incident_data = incident.model_dump()
+    else:
+        incident_data = incident.__dict__
+
     payload = {
-        # Task4Incident is a dataclass, not a Pydantic model.
-        # Therefore use asdict() instead of model_dump().
-        "incident": asdict(incident),
+        "incident": incident_data,
 
         "root_cause": root_cause.model_dump(),
 

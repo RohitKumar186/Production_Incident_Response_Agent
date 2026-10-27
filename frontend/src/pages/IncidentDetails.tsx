@@ -153,50 +153,57 @@ function stringifyValue(
   }
 }
 
-function getPayload(
-  value: unknown,
-): any {
-  const data = value as any
 
-  return (
-    data?.payload ??
-    data?.data?.payload ??
-    data?.data ??
-    data ??
-    {}
-  )
+function getPayload(value: unknown): any {
+  let data: any = value
+
+  // Some backend endpoints return arrays containing one record.
+  if (Array.isArray(data)) {
+    data = data.length > 0 ? data[0] : {}
+  }
+
+  // Support Axios responses and nested Knowledge Card payloads.
+  if (data?.data !== undefined) {
+    data = data.data
+
+    if (Array.isArray(data)) {
+      data = data.length > 0 ? data[0] : {}
+    }
+  }
+
+  return data?.payload ?? data ?? {}
 }
 
-function getArray(
-  value: unknown,
-  keys: string[],
-): any[] {
-  const data = value as any
+
+function getArray(value: unknown, keys: string[]): any[] {
+  const data: any = value
+
+  // The endpoint itself may return an array.
+  if (Array.isArray(data)) {
+    return data
+  }
 
   for (const key of keys) {
     if (Array.isArray(data?.[key])) {
       return data[key]
     }
 
-    if (
-      Array.isArray(
-        data?.payload?.[key],
-      )
-    ) {
+    if (Array.isArray(data?.payload?.[key])) {
       return data.payload[key]
     }
 
-    if (
-      Array.isArray(
-        data?.data?.[key],
-      )
-    ) {
+    if (Array.isArray(data?.data?.[key])) {
       return data.data[key]
+    }
+
+    if (Array.isArray(data?.data?.payload?.[key])) {
+      return data.data.payload[key]
     }
   }
 
   return []
 }
+
 
 function evidenceText(
   item: any,
@@ -706,6 +713,7 @@ function buildApiWorkflow(
     }
   }
 
+
   /*
    * =========================================================
    * TASK 4 — RCA
@@ -713,59 +721,64 @@ function buildApiWorkflow(
    */
 
   if (apiState.rca) {
-    const rca =
-      apiState.rca as any
+    const rca = apiState.rca as any
+    const payload = getPayload(rca)
 
-    const payload =
-      getPayload(rca)
+    // Support both direct database records and Knowledge Cards.
+    const rcaData =
+      payload?.root_cause !== undefined ||
+      payload?.recommended_action !== undefined
+        ? payload
+        : rca
 
     const rootCause =
-      payload?.root_cause
+      rcaData?.root_cause ??
+      rcaData?.rootCause
 
     const supportingEvidence =
-      Array.isArray(
-        payload?.supporting_evidence,
-      )
-        ? payload.supporting_evidence
-        : []
+      Array.isArray(rcaData?.supporting_evidence)
+        ? rcaData.supporting_evidence
+        : Array.isArray(rcaData?.contributing_factors)
+          ? rcaData.contributing_factors
+          : Array.isArray(rcaData?.evidence)
+            ? rcaData.evidence
+            : []
 
     const ragContext =
-      Array.isArray(
-        payload?.rag_context,
-      )
-        ? payload.rag_context
+      Array.isArray(rcaData?.rag_context)
+        ? rcaData.rag_context
         : []
 
     const recommendedAction =
-      payload?.recommended_action
+      rcaData?.recommended_action ??
+      rcaData?.recommendation
 
     const rootCauseText =
       typeof rootCause === 'string'
         ? rootCause
         : rootCause?.description ??
+          rootCause?.root_cause ??
           rootCause?.name ??
-          payload?.rootCause ??
+          (rootCause && typeof rootCause === 'object'
+            ? JSON.stringify(rootCause)
+            : null) ??
           'Pending'
 
     const confidence =
+      rcaData?.confidence ??
       rootCause?.confidence ??
       payload?.confidence
 
     const supportingEvidenceText =
       supportingEvidence
-        .map(
-          (item: any) =>
-            evidenceText(item),
-        )
+        .map((item: any) => evidenceText(item))
         .filter(Boolean)
         .join(' ')
 
     const historicalContext =
       ragContext
         .map((item: any) => {
-          if (
-            typeof item === 'string'
-          ) {
+          if (typeof item === 'string') {
             return item
           }
 
@@ -780,84 +793,64 @@ function buildApiWorkflow(
         .join(' · ')
 
     const recommendedActionText =
-      typeof recommendedAction ===
-      'string'
+      typeof recommendedAction === 'string'
         ? recommendedAction
         : recommendedAction?.action ??
           recommendedAction?.description ??
-          'Pending'
+          recommendedAction?.recommended_action ??
+          recommendedAction?.summary ??
+          'No remediation action specified'
 
-    const rcaStatus =
-      mapWorkflowStatus(
-        rca?.status ??
-          payload?.status,
-      )
+    const rcaStatus = mapWorkflowStatus(
+      rca?.status ??
+        rcaData?.status ??
+        payload?.status,
+    )
 
     workflow.rca = {
       ...workflow.rca,
-
       status: rcaStatus,
-
-      rootCause:
-        rootCauseText,
-
-      confidence:
-        getConfidenceText(
-          confidence,
-          workflow.rca.confidence,
-        ),
-
+      rootCause: rootCauseText,
+      confidence: getConfidenceText(
+        confidence,
+        workflow.rca.confidence,
+      ),
       evidence:
         supportingEvidenceText ||
         'No supporting evidence available.',
-
       historicalContext:
         historicalContext ||
         'No historical context returned.',
-
-      recommendedAction:
-        recommendedActionText,
+      recommendedAction: recommendedActionText,
     }
 
-    if (
-      rcaStatus === 'completed'
-    ) {
+    if (rcaStatus === 'completed') {
       workflow.remediation = {
         ...workflow.remediation,
 
         status:
-          workflow.remediation.status ===
-          'completed'
+          workflow.remediation.status === 'completed'
             ? 'completed'
             : 'active',
 
-        action:
-          recommendedActionText,
+        action: recommendedActionText,
 
         executionState:
-          workflow.remediation
-            .executionState ===
+          workflow.remediation.executionState ===
           'Executed successfully'
             ? 'Executed successfully'
             : 'Awaiting human approval',
 
         result:
-          workflow.remediation
-            .result === 'Pending'
+          workflow.remediation.result === 'Pending'
             ? 'Awaiting human approval.'
-            : workflow.remediation
-                .result,
+            : workflow.remediation.result,
       }
 
-      if (
-        workflow.remediation
-          .status !== 'completed'
-      ) {
+      if (workflow.remediation.status !== 'completed') {
         workflow.approval = {
           ...workflow.approval,
-
           status: 'active',
-
           message:
             'Review the proposed remediation before execution.',
         }
@@ -873,23 +866,39 @@ function buildApiWorkflow(
 
   if (apiState.remediation) {
     const remediation =
-      apiState.remediation as any
+  apiState.remediation as any
 
-    const payload =
-      getPayload(remediation)
+// GET /api/remediation/{incident_id} returns
+// an array of persisted remediation proposals.
+const proposal = Array.isArray(remediation)
+  ? remediation[0] ?? {}
+  : getPayload(remediation)
 
-    const remediationInfo =
-      payload?.remediation ?? {}
+const payload =
+  proposal?.payload ?? proposal
 
-    const approval =
-      payload?.approval ?? {}
+const remediationInfo =
+  payload?.remediation ?? payload
 
-    const execution =
-      payload?.execution ?? {}
+const approval =
+  payload?.approval ?? {
+    status: payload?.approval_status,
+    approved_by: payload?.approved_by,
+    approved_at: payload?.approved_at,
+  }
 
-    const embeddedVerification =
-      payload?.verification ?? {}
+const execution =
+  payload?.execution ?? {
+    status: payload?.execution_status,
+    message:
+      payload?.execution_result?.payload?.execution?.message ??
+      payload?.execution_result?.message,
+  }
 
+const embeddedVerification =
+  payload?.verification ??
+  payload?.execution_result?.payload?.verification ??
+  {}
     const approvalStatus =
       normalizeStatus(
         approval?.status,
@@ -1076,11 +1085,16 @@ function buildApiWorkflow(
             : workflow.verification
                 .recoveryStatus,
 
-      recoveryMetrics:
-        formatChecks(
-          payload?.checks ??
-            verification?.checks,
-        ),
+      
+      recoveryMetrics: formatChecks(
+  (verification as any)?.checks ??
+  (verification as any)?.recovery_metrics ??
+  (verification as any)?.verification_details?.payload?.verification?.checks ??
+  (verification as any)?.verification_details?.payload?.checks ??
+  (verification as any)?.verification_details?.checks,
+),
+
+
 
       result:
         payload?.message ??
@@ -2093,14 +2107,118 @@ export default function IncidentDetails() {
               }
             />
 
-            <DetailItem
-              label="Recovery Metrics"
-              value={
-                displayWorkflow
-                  .verification
-                  .recoveryMetrics
-              }
-            />
+ 
+
+<div className="w-full min-w-0">
+  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
+    Recovery Metrics
+  </p>
+
+  <div
+    style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+      gap: '12px',
+      width: '100%',
+    }}
+  >
+    {(() => {
+      const raw = displayWorkflow.verification.recoveryMetrics
+
+      const metrics =
+        typeof raw === 'string'
+          ? raw
+              .split(/\s*[·,|]\s*/)
+              .filter(Boolean)
+              .map((item) => {
+                const separator = item.indexOf(':')
+                return separator >= 0
+                  ? [
+                      item.slice(0, separator).trim(),
+                      item.slice(separator + 1).trim(),
+                    ]
+                  : [item.trim(), '']
+              })
+          : raw && typeof raw === 'object'
+            ? Object.entries(raw as Record<string, unknown>)
+            : []
+
+      const labels: Record<string, string> = {
+        error_rate: 'Error Rate',
+        action_type: 'Action Type',
+        api_latency_ms: 'API Latency',
+        service_status: 'Service Status',
+        db_query_latency_ms: 'DB Query Latency',
+      }
+
+      if (metrics.length === 0) {
+        return (
+          <p className="text-sm text-slate-400">
+            No recovery metrics available.
+          </p>
+        )
+      }
+
+      return metrics.map(([key, value]) => {
+        const metricKey = String(key).trim()
+        const metricValue = String(value).trim()
+
+        const isHealthy =
+          metricKey === 'service_status' &&
+          metricValue.toUpperCase() === 'HEALTHY'
+
+        return (
+          <div
+            key={metricKey}
+            style={{
+              minWidth: 0,
+              padding: '16px',
+              border: '1px solid #334155',
+              borderRadius: '12px',
+              background: '#151d27',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                color: '#94a3b8',
+                fontSize: '12px',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
+              {labels[metricKey] ??
+                metricKey.replace(/_/g, ' ')}
+            </p>
+
+            <p
+              style={{
+                margin: 0,
+                color: isHealthy ? '#34d399' : '#f1f5f9',
+                fontSize: metricKey === 'action_type' ? '14px' : '18px',
+                fontWeight: 600,
+                overflowWrap: 'normal',
+                wordBreak: 'normal',
+              }}
+            >
+              {metricValue || '—'}
+              {metricKey.includes('latency') && metricValue
+                ? ' ms'
+                : ''}
+              
+            </p>
+          </div>
+        )
+      })
+    })()}
+  </div>
+</div>
+
+
 
             <DetailItem
               label="Result"

@@ -1,13 +1,9 @@
+
 import apiClient from './client'
 
-interface BackendResponse<T> {
-  status: string
-  data: T
-}
-
 export interface InvestigationResponse {
-  incidentId: string
-  status: string
+  incidentId?: string
+  status?: string
   summary?: string
   findings?: unknown[]
   evidence?: unknown[]
@@ -25,24 +21,62 @@ export interface InvestigationResponse {
   producer?: string
   consumer?: string
   schema_version?: string
+
+  [key: string]: unknown
+}
+
+function unwrapResponse<T>(responseData: unknown): T {
+  let data: any = responseData
+
+  if (data?.data !== undefined) {
+    data = data.data
+  }
+
+  if (Array.isArray(data)) {
+    data = data.length > 0 ? data[0] : {}
+  }
+
+  if (data?.payload !== undefined) {
+    data = data.payload
+  }
+
+  return data as T
 }
 
 export async function getInvestigation(
   incidentId: string,
 ): Promise<InvestigationResponse> {
-  const response = await apiClient.get<BackendResponse<InvestigationResponse>>(
-    `/api/incidents/${incidentId}/investigation`,
+  const response = await apiClient.get(
+    `/api/investigations/${encodeURIComponent(incidentId)}`,
   )
 
-  return response.data.data
+  return unwrapResponse<InvestigationResponse>(response.data)
 }
 
 export async function getIncidentEvidence(
   incidentId: string,
 ): Promise<unknown[]> {
-  const response = await apiClient.get<BackendResponse<unknown[]>>(
-    `/api/incidents/${incidentId}/evidence`,
+  const response = await apiClient.get(
+    `/api/investigations/incident/${encodeURIComponent(incidentId)}/evidence`,
   )
 
-  return response.data.data
+  const data: any = response.data
+
+  if (Array.isArray(data)) {
+    return data
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data
+  }
+
+  if (Array.isArray(data?.evidence)) {
+    return data.evidence
+  }
+
+  if (Array.isArray(data?.payload?.evidence)) {
+    return data.payload.evidence
+  }
+
+  return []
 }
